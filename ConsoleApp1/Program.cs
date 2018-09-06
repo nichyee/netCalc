@@ -27,9 +27,19 @@ namespace ConsoleApp1
         }
     }
 
+    class XNotAtFrontException : Exception
+    {
+        public XNotAtFrontException(string message): base(message)
+        {
+
+        }
+    }
+
 
     class Program
     {
+
+
         static void Main(string[] args)
         {
             Priorities plus = new Priorities("+", 2);
@@ -42,152 +52,195 @@ namespace ConsoleApp1
             Stack<int> finalStack = new Stack<int>();
             ArrayList outputArray = new ArrayList();
 
-            
 
-            string[] characterArray = args;
+
+            Console.WriteLine("Enter statement to be evaluated:");
+            string userInput = Console.ReadLine();
+            string[] userArgs = userInput.Split(" ");
+
+            try
+            {
+                checkXAtFront();
+                shuntingYard(userArgs);
+                combineStacks();
+                evaluateStatement();
+                Console.WriteLine("X = {0}", finalStack.Pop());
+            }
+            catch (OverflowException)
+            {
+                Console.WriteLine("Index out of Range");
+            }
+            catch (DivideByZeroException)
+            {
+                Console.WriteLine("Cannot Divide by Zero");
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Incorrect Format");
+            }
+            catch (XNotAtFrontException)
+            {
+                Console.WriteLine("Please put 'X =' at front of statement");
+            }
 
             //Shunting Yard Algorithm
-            for (int i = 0; i < characterArray.Length; i++)
+            void shuntingYard(string[] numbers)
             {
-                switch (characterArray[i])
+                for (int i = 2; i < numbers.Length; i++)
                 {
-                    case ("+"):
-                        if (operatorStack.Count == 0)
-                        {
-                            operatorStack.Push(plus);
-                        } else if (plus.getPriority() >= operatorStack.Peek().getPriority())
-                        {
-                            operatorStack.Push(plus);
-                        } else
-                        {
-                            operatorStack.Push(plus);
-                        }
-                        break;
+                    switch (numbers[i])
+                    {
+                        case ("+"):
+                            if (operatorStack.Count == 0)
+                            {
+                                operatorStack.Push(plus);
+                            }
+                            else if (plus.getPriority() >= operatorStack.Peek().getPriority())
+                            {
+                                outputArray.Add(operatorStack.Pop().getOperation());
+                                operatorStack.Push(plus);
+                            }
+                            else
+                            {
+                                operatorStack.Push(plus);
+                            }
+                            break;
 
-                    case ("-"):
-                        if (operatorStack.Count == 0)
-                        {
-                            operatorStack.Push(minus);
-                        }
-                        else if (minus.getPriority() >= operatorStack.Peek().getPriority())
-                        {
-                            operatorStack.Push(minus);
-                        }
-                        else
-                        {
-                            operatorStack.Push(minus);
-                        }
-                        break;
+                        case ("-"):
+                            if (operatorStack.Count == 0)
+                            {
+                                operatorStack.Push(minus);
+                            }
+                            else if (minus.getPriority() >= operatorStack.Peek().getPriority())
+                            {
+                                outputArray.Add(operatorStack.Pop().getOperation());
+                                operatorStack.Push(minus);
+                            }
+                            else
+                            {
+                                operatorStack.Push(minus);
+                            }
+                            break;
 
-                    case ("*"):
-                        if (operatorStack.Count == 0)
-                        {
-                            operatorStack.Push(multiply);
-                        }
-                        else if (multiply.getPriority() >= operatorStack.Peek().getPriority())
-                        {
-                            operatorStack.Push(multiply);
-                        }
-                        else
-                        {
-                            operatorStack.Push(multiply);
-                        }
-                        break;
+                        case ("*"):
+                            if (operatorStack.Count == 0)
+                            {
+                                operatorStack.Push(multiply);
+                            }
+                            else if (multiply.getPriority() >= operatorStack.Peek().getPriority())
+                            {
+                                outputArray.Add(operatorStack.Pop().getOperation());
+                                operatorStack.Push(multiply);
+                            }
+                            else
+                            {
+                                operatorStack.Push(multiply);
+                            }
+                            break;
 
-                    case ("/"):
-                        if (operatorStack.Count == 0)
-                        {
-                            operatorStack.Push(divide);
-                        }
-                        else if (divide.getPriority() >= operatorStack.Peek().getPriority())
-                        {
-                            operatorStack.Push(divide);
-                        }
-                        else
-                        {
-                            operatorStack.Push(divide);
-                        }
-                        break;
+                        case ("/"):
+                            if (operatorStack.Count == 0)
+                            {
+                                operatorStack.Push(divide);
+                            }
+                            else if (divide.getPriority() >= operatorStack.Peek().getPriority())
+                            {
+                                outputArray.Add(operatorStack.Pop().getOperation());
+                                operatorStack.Push(divide);
+                            }
+                            else
+                            {
+                                operatorStack.Push(divide);
+                            }
+                            break;
 
-                    case ("%"):
-                        if (operatorStack.Count == 0)
-                        {
-                            operatorStack.Push(modulo);
-                        }
-                        else if (modulo.getPriority() >= operatorStack.Peek().getPriority())
-                        {
-                            operatorStack.Push(modulo);
-                        }
-                        else
-                        {
-                            operatorStack.Push(modulo);
-                        }
-                        break;
-                    default:
-                        outputArray.Add(characterArray[i]);
-                        break;
+                        case ("%"):
+                            if (operatorStack.Count == 0)
+                            {
+                                operatorStack.Push(modulo);
+                            }
+                            else if (modulo.getPriority() >= operatorStack.Peek().getPriority())
+                            {
+                                outputArray.Add(operatorStack.Pop().getOperation());
+                                operatorStack.Push(modulo);
+                            }
+                            else
+                            {
+                                operatorStack.Push(modulo);
+                            }
+                            break;
+                        default:
+                            outputArray.Add(numbers[i]);
+                            break;
+                    }
                 }
             }
 
-            //Combines
-            while (operatorStack.Count > 0)
+            void combineStacks()
             {
-                outputArray.Add(operatorStack.Pop().getOperation());
-            }
 
-
-
-            //Evaluates
-            int firstNumber;
-            int secondNumber;
-            for (int i = 0; i < outputArray.Count; i++)
-            {
-                switch (outputArray[i])
+                while (operatorStack.Count > 0)
                 {
-                    case ("+"):
-                        firstNumber = finalStack.Pop();
-                        secondNumber = finalStack.Pop();
-                        finalStack.Push(secondNumber + firstNumber);
-                        break;
-
-                    case ("-"):
-                        firstNumber = finalStack.Pop();
-                        secondNumber = finalStack.Pop();
-                        finalStack.Push(secondNumber - firstNumber);
-                        break;
-
-                    case ("*"):
-                        firstNumber = finalStack.Pop();
-                        secondNumber = finalStack.Pop();
-                        finalStack.Push(secondNumber * firstNumber);
-                        break;
-
-                    case ("/"):
-                        firstNumber = finalStack.Pop();
-                        secondNumber = finalStack.Pop();
-                        finalStack.Push(secondNumber / firstNumber);
-                        break;
-
-                    case ("%"):
-                        firstNumber = finalStack.Pop();
-                        secondNumber = finalStack.Pop();
-                        finalStack.Push(secondNumber % firstNumber);
-                        break;
-
-                    default:
-                        finalStack.Push(Convert.ToInt32(outputArray[i]));
-                        break;
+                    outputArray.Add(operatorStack.Pop().getOperation());
                 }
             }
 
+            void evaluateStatement()
+            {
+                //Evaluates
+                int firstNumber;
+                int secondNumber;
+                for (int i = 0; i < outputArray.Count; i++)
+                {
+                    switch (outputArray[i])
+                    {
+                        case ("+"):
+                            firstNumber = finalStack.Pop();
+                            secondNumber = finalStack.Pop();
+                            finalStack.Push(secondNumber + firstNumber);
+                            break;
 
-            Console.WriteLine(finalStack.Pop());
+                        case ("-"):
+                            firstNumber = finalStack.Pop();
+                            secondNumber = finalStack.Pop();
+                            finalStack.Push(secondNumber - firstNumber);
+                            break;
 
+                        case ("*"):
+                            firstNumber = finalStack.Pop();
+                            secondNumber = finalStack.Pop();
+                            finalStack.Push(secondNumber * firstNumber);
+                            break;
 
+                        case ("/"):
+                            firstNumber = finalStack.Pop();
+                            secondNumber = finalStack.Pop();
+                            finalStack.Push(secondNumber / firstNumber);
+                            break;
 
+                        case ("%"):
+                            firstNumber = finalStack.Pop();
+                            secondNumber = finalStack.Pop();
+                            finalStack.Push(secondNumber % firstNumber);
+                            break;
+
+                        default:
+                            finalStack.Push(Convert.ToInt32(outputArray[i]));
+                            break;
+                    }
+                }
+            }
+
+            void checkXAtFront()
+            {
+                if (userArgs[0].Equals("X") && userArgs[1].Equals("="))
+                {
+
+                } else
+                {
+                    throw new XNotAtFrontException("Please format the statement correctly");
+                }
+            }
         }
     }
-
-
-
 }
