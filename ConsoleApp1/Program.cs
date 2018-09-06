@@ -27,14 +27,6 @@ namespace ConsoleApp1
         }
     }
 
-    class XNotAtFrontException : Exception
-    {
-        public XNotAtFrontException(string message): base(message)
-        {
-
-        }
-    }
-
 
     class Program
     {
@@ -48,23 +40,35 @@ namespace ConsoleApp1
             Priorities divide = new Priorities("/", 1);
             Priorities modulo = new Priorities("%", 1);
 
-            Stack<Priorities> operatorStack = new Stack<Priorities>();
-            Stack<int> finalStack = new Stack<int>();
-            ArrayList outputArray = new ArrayList();
-
-
+            Stack xStack = new Stack();
+            Stack<Priorities> priorities = new Stack<Priorities>();
+            ArrayList arrayList = new ArrayList();
+            Stack<int> final = new Stack<int>();
+            int leftHandResult;
+            int rightHandResult;
 
             Console.WriteLine("Enter statement to be evaluated:");
             string userInput = Console.ReadLine();
-            string[] userArgs = userInput.Split(" ");
+            string[] twoSides = userInput.Split(" = ");
+            string[] leftHandSide = twoSides[0].Split(" ");
+            string[] rightHandSide = twoSides[1].Split(" ");
+
 
             try
             {
-                checkXAtFront();
-                shuntingYard(userArgs);
-                combineStacks();
-                evaluateStatement();
-                Console.WriteLine("X = {0}", finalStack.Pop());
+                priorities = shuntingYard(leftHandSide).Item1;
+                arrayList = shuntingYard(leftHandSide).Item2;
+                arrayList = combineStacks(priorities, arrayList);
+                final = evaluateStatement(arrayList);
+                leftHandResult = final.Pop();
+
+                priorities = shuntingYard(rightHandSide).Item1;
+                arrayList = shuntingYard(rightHandSide).Item2;
+                arrayList = combineStacks(priorities, arrayList);
+                final = evaluateStatement(arrayList);
+                rightHandResult = final.Pop();
+
+                Console.WriteLine("LHS = {0} ... RHS = {1}", leftHandResult, rightHandResult);
             }
             catch (OverflowException)
             {
@@ -78,15 +82,14 @@ namespace ConsoleApp1
             {
                 Console.WriteLine("Incorrect Format");
             }
-            catch (XNotAtFrontException)
-            {
-                Console.WriteLine("Please put 'X =' at front of statement");
-            }
 
             //Shunting Yard Algorithm
-            void shuntingYard(string[] numbers)
+            (Stack<Priorities>, ArrayList) shuntingYard(string[] numbers)
             {
-                for (int i = 2; i < numbers.Length; i++)
+                Stack<Priorities> operatorStack = new Stack<Priorities>();
+                ArrayList outputArray = new ArrayList();
+
+                for (int i = 0; i < numbers.Length; i++)
                 {
                     switch (numbers[i])
                     {
@@ -169,30 +172,36 @@ namespace ConsoleApp1
                                 operatorStack.Push(modulo);
                             }
                             break;
+                        case ("X"):
+                            xStack.Push("X");
+                            break;
                         default:
                             outputArray.Add(numbers[i]);
                             break;
                     }
                 }
+                return (operatorStack, outputArray);
             }
 
-            void combineStacks()
+            ArrayList combineStacks(Stack<Priorities> operatorStack, ArrayList outputArray)
             {
 
                 while (operatorStack.Count > 0)
                 {
                     outputArray.Add(operatorStack.Pop().getOperation());
                 }
+                return (outputArray);
             }
 
-            void evaluateStatement()
+            Stack<int> evaluateStatement(ArrayList combinedArray)
             {
                 //Evaluates
+                Stack<int> finalStack = new Stack<int>();
                 int firstNumber;
                 int secondNumber;
-                for (int i = 0; i < outputArray.Count; i++)
+                for (int i = 0; i < combinedArray.Count; i++)
                 {
-                    switch (outputArray[i])
+                    switch (combinedArray[i])
                     {
                         case ("+"):
                             firstNumber = finalStack.Pop();
@@ -225,21 +234,12 @@ namespace ConsoleApp1
                             break;
 
                         default:
-                            finalStack.Push(Convert.ToInt32(outputArray[i]));
+                            finalStack.Push(Convert.ToInt32(combinedArray[i]));
                             break;
                     }
                 }
-            }
 
-            void checkXAtFront()
-            {
-                if (userArgs[0].Equals("X") && userArgs[1].Equals("="))
-                {
-
-                } else
-                {
-                    throw new XNotAtFrontException("Please format the statement correctly");
-                }
+                return finalStack;
             }
         }
     }
