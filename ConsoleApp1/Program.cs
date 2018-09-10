@@ -46,6 +46,7 @@ namespace ConsoleApp1
             Stack<int> final = new Stack<int>();
             int leftHandResult;
             int rightHandResult;
+            ArrayList operatorX = new ArrayList();
 
             Console.WriteLine("Enter statement to be evaluated:");
             string userInput = Console.ReadLine();
@@ -56,19 +57,31 @@ namespace ConsoleApp1
 
             try
             {
+                leftHandSide = removeX(leftHandSide);
                 priorities = shuntingYard(leftHandSide).Item1;
                 arrayList = shuntingYard(leftHandSide).Item2;
                 arrayList = combineStacks(priorities, arrayList);
                 final = evaluateStatement(arrayList);
                 leftHandResult = final.Pop();
 
+                rightHandSide = removeX(rightHandSide);
                 priorities = shuntingYard(rightHandSide).Item1;
                 arrayList = shuntingYard(rightHandSide).Item2;
                 arrayList = combineStacks(priorities, arrayList);
                 final = evaluateStatement(arrayList);
                 rightHandResult = final.Pop();
 
+                if (operatorX.Count > 0)
+                {
+                    operatorX = flipOperator(operatorX);
+                }
+                
+
                 Console.WriteLine("LHS = {0} ... RHS = {1}", leftHandResult, rightHandResult);
+                foreach (string item in operatorX)
+                {
+                    Console.Write(item + " ");
+                }
             }
             catch (OverflowException)
             {
@@ -238,9 +251,58 @@ namespace ConsoleApp1
                             break;
                     }
                 }
-
                 return finalStack;
             }
+
+            String[] removeX(string[] passedInArray)
+            {
+                int remove = -1;
+                ArrayList localArrayList = new ArrayList();
+                localArrayList.AddRange(passedInArray);
+
+                for (int i = localArrayList.Count -1; i >= 0; i--)
+                {
+                    if (localArrayList[i].ToString().Contains("X"))
+                    {
+                        remove = i;
+                    }
+                }
+
+                if (remove > 0) {
+                    operatorX.Add(localArrayList[remove -1 ]);
+                    operatorX.Add(localArrayList[remove]);
+                    localArrayList.RemoveRange(remove-1, 2);
+                }
+
+                return (string[])localArrayList.ToArray(typeof(string));
+            }
+
+            ArrayList flipOperator(ArrayList operatorAndX)
+            {
+                switch (operatorAndX[0].ToString())
+                {
+                    case ("+"):
+                        operatorAndX[0] = "-";
+                        break;
+
+                    case ("-"):
+                        operatorAndX[0] = "+";
+                        break;
+
+                    case ("*"):
+                        operatorAndX[0] = "/";
+                        break;
+
+                    case ("/"):
+                        operatorAndX[0] = "*";
+                        break;
+                    default:
+                        break;
+                }
+
+                return operatorAndX;
+            }
+
         }
     }
 }
