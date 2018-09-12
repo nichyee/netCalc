@@ -47,6 +47,7 @@ namespace ConsoleApp1
             int leftHandResult;
             int rightHandResult;
             ArrayList operatorX = new ArrayList();
+            int leftOrRight = 0;
 
             Console.WriteLine("Enter statement to be evaluated:");
             string userInput = Console.ReadLine();
@@ -58,6 +59,10 @@ namespace ConsoleApp1
             try
             {
                 leftHandSide = removeX(leftHandSide);
+                if (operatorX.Count > 0)
+                {
+                    leftOrRight = 1;
+                }
                 priorities = shuntingYard(leftHandSide).Item1;
                 arrayList = shuntingYard(leftHandSide).Item2;
                 arrayList = combineStacks(priorities, arrayList);
@@ -74,6 +79,7 @@ namespace ConsoleApp1
                 if (operatorX.Count > 0)
                 {
                     operatorX = flipOperator(operatorX);
+                    Console.WriteLine("X = {0}", resolveX(leftHandResult, rightHandResult));
                 }
                 
 
@@ -265,6 +271,7 @@ namespace ConsoleApp1
                     if (localArrayList[i].ToString().Contains("X"))
                     {
                         remove = i;
+                        leftOrRight = 1;
                     }
                 }
 
@@ -301,6 +308,39 @@ namespace ConsoleApp1
                 }
 
                 return operatorAndX;
+            }
+
+            int resolveX(int leftSide, int rightSide)
+            {
+                int result = 0;
+                char[] xArray = operatorX[1].ToString().ToCharArray();
+                int xCoefficient = 1;
+
+                if (operatorX.Count > 0 && leftOrRight == 1)
+                {
+                    result = leftSide - rightSide;
+                } else if (operatorX.Count > 0 && leftOrRight == 0)
+                {
+                    result = rightSide - leftSide ;
+                }
+
+                switch (xArray.Length)
+                {
+                    case (2):
+                        xCoefficient = Convert.ToInt32(xArray[0]);
+                        result = result / xCoefficient;
+                        break;
+                    case (3):
+                        xCoefficient = (10* Convert.ToInt32(xArray[0])) + Convert.ToInt32(xArray[1]);
+                        result = result / xCoefficient;
+                        break;
+                    case (4):
+                        xCoefficient = (100 * Convert.ToInt32(xArray[0])) + (10 * Convert.ToInt32(xArray[1])) + Convert.ToInt32(xArray[0]);
+                        result = result / xCoefficient;
+                        break;
+                }
+
+                return result;
             }
 
         }
