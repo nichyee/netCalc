@@ -29,8 +29,6 @@ namespace ConsoleApp1
 
     class Program
     {
-
-
         static void Main(string[] args)
         {
             Priorities plus = new Priorities("+", 2);
@@ -62,7 +60,7 @@ namespace ConsoleApp1
                 string[] rightHandSide = twoSides[1].Split(' ');
 
                 ArrayList tempLeft = new ArrayList(leftHandSide);
-                tempLeft.RemoveAt(tempLeft.Count-1);
+                tempLeft.RemoveAt(tempLeft.Count - 1);
                 ArrayList tempRight = new ArrayList(rightHandSide);
                 tempRight.RemoveAt(tempRight.Count - 1);
                 tempRight.RemoveAt(0);
@@ -284,11 +282,12 @@ namespace ConsoleApp1
                 }
 
                 if (remove > 0)
-                { 
+                {
                     operatorX.Add(localArrayList[remove - 1]);
                     operatorX.Add(localArrayList[remove]);
                     localArrayList.RemoveRange(remove - 1, 2);
-                } else if (remove == 0)
+                }
+                else if (remove == 0)
                 {
                     operatorX.Add("+");
                     operatorX.Add(localArrayList[remove]);
@@ -296,7 +295,8 @@ namespace ConsoleApp1
                     {
                         opBeforeStatement = localArrayList[remove + 1].ToString();
                         localArrayList.RemoveRange(remove, 2);
-                    } else
+                    }
+                    else
                     {
                         localArrayList.RemoveAt(remove);
                     }
@@ -318,11 +318,10 @@ namespace ConsoleApp1
                     xArray[i] = temp[i].ToString();
                 }
                 int xCoefficient = 1;
-                
+
 
                 if (operatorX.Count > 0 && leftOrRight == 1)
                 {
-                    //rightSide = reverseNumber(rightSide);
                     switch (opBeforeStatement)
                     {
                         case ("+"):
@@ -341,7 +340,6 @@ namespace ConsoleApp1
                 }
                 else if (operatorX.Count > 0 && leftOrRight == 0)
                 {
-                    //leftSide = reverseNumber(leftSide);
                     switch (opBeforeStatement)
                     {
                         case ("+"):
@@ -364,7 +362,7 @@ namespace ConsoleApp1
                     xCoefficient = coefficientCreator(xArray);
                     result = result / xCoefficient;
                 }
-                
+
 
                 return result;
             }
@@ -373,23 +371,13 @@ namespace ConsoleApp1
             {
                 double coefficient = 0;
                 int power = 0;
-                for (int i = array.Length-2; i >= 0; i--)
+                for (int i = array.Length - 2; i >= 0; i--)
                 {
-                    coefficient += Math.Pow(10.0, power)*Convert.ToInt32(array[i]);
+                    coefficient += Math.Pow(10.0, power) * Convert.ToInt32(array[i]);
                     power++;
                 }
                 return (int)coefficient;
             }
-
-            int reverseNumber(int number)
-            {
-                if (opBeforeStatement.Equals("-"))
-                {
-                    number = number * -1;
-                }
-                return number;
-            }
-
         }
     }
 }
