@@ -49,11 +49,6 @@ namespace ConsoleApp1
             int leftOrRight = 1;
             string opBeforeStatement = "+";
 
-            foreach (string strin in args)
-            {
-                Console.WriteLine(strin);
-            }
-
             try
             {
                 //Console.WriteLine("Enter statement to be evaluated:");
