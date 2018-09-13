@@ -2,7 +2,7 @@
   "profiles": {
     "ConsoleApp1": {
       "commandName": "Project",
-      "commandLineArgs": "16X + 2 = 72"
+      "commandLineArgs": "5 + 5 + 5 = ( 2X + 5 )  * 5"
     }
   }
 }

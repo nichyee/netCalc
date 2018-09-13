@@ -27,7 +27,7 @@ namespace ConsoleApp1
         }
     }
 
-    class Program
+    class Calc
     {
         static void Main(string[] args)
         {
@@ -35,9 +35,9 @@ namespace ConsoleApp1
             Priorities minus = new Priorities("-", 2);
             Priorities multiply = new Priorities("*", 1);
             Priorities divide = new Priorities("/", 1);
-            Priorities modulo = new Priorities("%", 1);
+            Priorities leftBracket = new Priorities("(", 3);
+            Priorities rightBracket = new Priorities(")", 3);
 
-            Stack xStack = new Stack();
             Stack<Priorities> priorities = new Stack<Priorities>();
             ArrayList arrayList = new ArrayList();
             Stack<int> final = new Stack<int>();
@@ -46,11 +46,14 @@ namespace ConsoleApp1
             ArrayList operatorX = new ArrayList();
             int leftOrRight = 1;
             string opBeforeStatement = "+";
+            ArrayList parenthesis = new ArrayList();
+            int parenthesisSide = 3;
+            int parenthesisIndex = 0;
+            int parenthesisAnswer = 0;
+            string userInput = "";
 
             try
             {
-                //Console.WriteLine("Enter statement to be evaluated:");
-                string userInput = "";
                 for (int i = 0; i < args.Length; i++)
                 {
                     userInput += (args[i] + " ");
@@ -68,25 +71,28 @@ namespace ConsoleApp1
                 leftHandSide = (string[])tempLeft.ToArray(typeof(string));
                 rightHandSide = (string[])tempRight.ToArray(typeof(string));
 
-                leftHandSide = removeX(leftHandSide);
-                if (operatorX.Count > 0)
+                var parenthesisHandle = sortOutParenthesis(leftHandSide, rightHandSide);
+                leftHandSide = parenthesisHandle.Item1;
+                rightHandSide = parenthesisHandle.Item2;
+
+                leftHandResult = solveString(leftHandSide);
+                if (operatorX.Count > 2)
                 {
                     leftOrRight = 0;
                 }
-                priorities = shuntingYard(leftHandSide).Item1;
-                arrayList = shuntingYard(leftHandSide).Item2;
-                arrayList = combineStacks(priorities, arrayList);
-                final = evaluateStatement(arrayList);
-                leftHandResult = final.Pop();
 
-                rightHandSide = removeX(rightHandSide);
-                priorities = shuntingYard(rightHandSide).Item1;
-                arrayList = shuntingYard(rightHandSide).Item2;
-                arrayList = combineStacks(priorities, arrayList);
-                final = evaluateStatement(arrayList);
-                rightHandResult = final.Pop();
+                rightHandResult = solveString(rightHandSide);
 
-                Console.WriteLine("X = {0}", resolveX(leftHandResult, rightHandResult));
+                int result = resolveX(leftHandResult, rightHandResult);
+
+                if (parenthesis.Count > 0)
+                {
+                    string[] parenthesisStringArray = (string[])parenthesis.ToArray(typeof(string));
+                    int parenthesisResult = solveString(parenthesisStringArray);
+                    result = resolveX(result, parenthesisResult);
+                }
+
+                Console.WriteLine("X = {0}", result);
             }
             catch (OverflowException)
             {
@@ -183,23 +189,14 @@ namespace ConsoleApp1
                             }
                             break;
 
-                        case ("%"):
-                            if (operatorStack.Count == 0)
-                            {
-                                operatorStack.Push(modulo);
-                            }
-                            else if (modulo.getPriority() >= operatorStack.Peek().getPriority())
+                        case ("("):
+                            operatorStack.Push(leftBracket);
+                            break;
+                        case (")"):
+                            do
                             {
                                 outputArray.Add(operatorStack.Pop().getOperation());
-                                operatorStack.Push(modulo);
-                            }
-                            else
-                            {
-                                operatorStack.Push(modulo);
-                            }
-                            break;
-                        case ("X"):
-                            xStack.Push("X");
+                            } while (operatorStack.Pop() != leftBracket);
                             break;
                         default:
                             outputArray.Add(numbers[i]);
@@ -299,13 +296,48 @@ namespace ConsoleApp1
                     else
                     {
                         localArrayList.RemoveAt(remove);
+                        localArrayList.Reverse();
+                        localArrayList.Add("0");
+                        localArrayList.Reverse();
                     }
-                    localArrayList.Reverse();
-                    localArrayList.Add("0");
-                    localArrayList.Reverse();
+                    
                 }
 
                 return (string[])localArrayList.ToArray(typeof(string));
+            }
+
+            (bool, int, int, bool) checkParenthesis(string[] statement)
+            {
+                bool brackets = false;
+                bool hasX = false;
+                int leftBracketIndex = 0;
+                int rightBracketIndex = 0;
+                for (int i = 0; i < statement.Length; i++)
+                {
+                    if (statement[i].ToString().Contains("("))
+                    {
+                        leftBracketIndex = i;
+                        brackets = true;
+                    }
+                    else if (statement[i].ToString().Contains(")"))
+                    {
+                        rightBracketIndex = i;
+                    }
+                    else if (statement[i].ToString().Contains("X"))
+                    {
+                        hasX = true;
+                    }
+                }
+                int index = leftBracketIndex + 1;
+                ArrayList temp = new ArrayList(statement);
+
+                while (index < rightBracketIndex)
+                {
+                    parenthesis.Add(statement[index]);
+                    index++;
+                }
+
+                return (hasX, leftBracketIndex, (rightBracketIndex - leftBracketIndex) + 1, brackets);
             }
 
             int resolveX(int leftSide, int rightSide)
@@ -377,6 +409,58 @@ namespace ConsoleApp1
                     power++;
                 }
                 return (int)coefficient;
+            }
+
+            int solveString(string[] toSolve)
+            {
+                toSolve = removeX(toSolve);
+                priorities = shuntingYard(toSolve).Item1;
+                arrayList = shuntingYard(toSolve).Item2;
+                arrayList = combineStacks(priorities, arrayList);
+                final = evaluateStatement(arrayList);
+                return final.Pop();
+            }
+
+            (string[], string[]) sortOutParenthesis(string[] firstStringArray, string[] secondStringArray)
+            {
+                ArrayList tempLeft = new ArrayList(firstStringArray);
+                ArrayList tempRight = new ArrayList(secondStringArray);
+                var parenthesisCheckLeft = checkParenthesis(firstStringArray);
+                var parenthesisCheckRight = checkParenthesis(secondStringArray);
+                
+
+                if (parenthesisCheckLeft.Item4)
+                {
+                    parenthesisIndex = parenthesisCheckLeft.Item2;
+                    parenthesisSide = 0;
+                }
+                else if (parenthesisCheckRight.Item4)
+                {
+                    parenthesisIndex = parenthesisCheckRight.Item2;
+                    parenthesisSide = 1;
+                }
+
+                if (parenthesisCheckLeft.Item1 && parenthesisSide == 0)
+                {
+                    string[] parenthesisArray = (string[])parenthesis.ToArray(typeof(string));
+                    parenthesisAnswer = solveString(parenthesisArray);
+                    tempLeft = new ArrayList(firstStringArray);
+                    tempLeft.Insert(parenthesisIndex, parenthesisAnswer);
+                    tempLeft.RemoveRange(parenthesisIndex + 1, parenthesisCheckLeft.Item3);
+                    firstStringArray = (string[])tempLeft.ToArray(typeof(string));
+                }
+                else if (parenthesisCheckRight.Item1 && parenthesisSide == 1)
+                {
+                    string[] parenthesisArray = (string[])parenthesis.ToArray(typeof(string));
+                    parenthesisAnswer = solveString(parenthesisArray);
+                    tempRight = new ArrayList(secondStringArray);
+                    tempRight.Insert(parenthesisIndex, "X");
+                    operatorX[1] = "X";
+                    tempRight.RemoveRange(parenthesisIndex + 1, parenthesisCheckRight.Item3);
+                    secondStringArray = (string[])tempRight.ToArray(typeof(string));
+                }
+
+                return (firstStringArray, secondStringArray);
             }
         }
     }
