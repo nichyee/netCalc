@@ -27,7 +27,6 @@ namespace ConsoleApp1
         }
     }
 
-
     class Program
     {
 
@@ -47,21 +46,39 @@ namespace ConsoleApp1
             int leftHandResult;
             int rightHandResult;
             ArrayList operatorX = new ArrayList();
-            int leftOrRight = 0;
+            int leftOrRight = 1;
+            string opBeforeStatement = "+";
 
-            Console.WriteLine("Enter statement to be evaluated:");
-            string userInput = Console.ReadLine();
-            string[] twoSides = userInput.Split(" = ");
-            string[] leftHandSide = twoSides[0].Split(" ");
-            string[] rightHandSide = twoSides[1].Split(" ");
-
+            foreach (string strin in args)
+            {
+                Console.WriteLine(strin);
+            }
 
             try
             {
+                //Console.WriteLine("Enter statement to be evaluated:");
+                string userInput = "";
+                for (int i = 0; i < args.Length; i++)
+                {
+                    userInput += (args[i] + " ");
+                }
+                string[] twoSides = userInput.Split('=');
+                string[] leftHandSide = twoSides[0].Split(' ');
+                string[] rightHandSide = twoSides[1].Split(' ');
+
+                ArrayList tempLeft = new ArrayList(leftHandSide);
+                tempLeft.RemoveAt(tempLeft.Count-1);
+                ArrayList tempRight = new ArrayList(rightHandSide);
+                tempRight.RemoveAt(tempRight.Count - 1);
+                tempRight.RemoveAt(0);
+
+                leftHandSide = (string[])tempLeft.ToArray(typeof(string));
+                rightHandSide = (string[])tempRight.ToArray(typeof(string));
+
                 leftHandSide = removeX(leftHandSide);
                 if (operatorX.Count > 0)
                 {
-                    leftOrRight = 1;
+                    leftOrRight = 0;
                 }
                 priorities = shuntingYard(leftHandSide).Item1;
                 arrayList = shuntingYard(leftHandSide).Item2;
@@ -76,22 +93,11 @@ namespace ConsoleApp1
                 final = evaluateStatement(arrayList);
                 rightHandResult = final.Pop();
 
-                if (operatorX.Count > 0)
-                {
-                    operatorX = flipOperator(operatorX);
-                    Console.WriteLine("X = {0}", resolveX(leftHandResult, rightHandResult));
-                }
-                
-
-                Console.WriteLine("LHS = {0} ... RHS = {1}", leftHandResult, rightHandResult);
-                foreach (string item in operatorX)
-                {
-                    Console.Write(item + " ");
-                }
+                Console.WriteLine("X = {0}", resolveX(leftHandResult, rightHandResult));
             }
             catch (OverflowException)
             {
-                Console.WriteLine("Index out of Range");
+                Console.WriteLine("Numbers are too large");
             }
             catch (DivideByZeroException)
             {
@@ -100,6 +106,14 @@ namespace ConsoleApp1
             catch (FormatException)
             {
                 Console.WriteLine("Incorrect Format");
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Console.WriteLine("Missing X");
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Console.WriteLine("Missing = sign");
             }
 
             //Shunting Yard Algorithm
@@ -266,81 +280,119 @@ namespace ConsoleApp1
                 ArrayList localArrayList = new ArrayList();
                 localArrayList.AddRange(passedInArray);
 
-                for (int i = localArrayList.Count -1; i >= 0; i--)
+                for (int i = localArrayList.Count - 1; i >= 0; i--)
                 {
                     if (localArrayList[i].ToString().Contains("X"))
                     {
                         remove = i;
-                        leftOrRight = 1;
                     }
                 }
 
-                if (remove > 0) {
-                    operatorX.Add(localArrayList[remove -1 ]);
+                if (remove > 0)
+                { 
+                    operatorX.Add(localArrayList[remove - 1]);
                     operatorX.Add(localArrayList[remove]);
-                    localArrayList.RemoveRange(remove-1, 2);
+                    localArrayList.RemoveRange(remove - 1, 2);
+                } else if (remove == 0)
+                {
+                    operatorX.Add("+");
+                    operatorX.Add(localArrayList[remove]);
+                    if (localArrayList.Count > 1)
+                    {
+                        opBeforeStatement = localArrayList[remove + 1].ToString();
+                        localArrayList.RemoveRange(remove, 2);
+                    } else
+                    {
+                        localArrayList.RemoveAt(remove);
+                    }
+                    localArrayList.Reverse();
+                    localArrayList.Add("0");
+                    localArrayList.Reverse();
                 }
 
                 return (string[])localArrayList.ToArray(typeof(string));
             }
 
-            ArrayList flipOperator(ArrayList operatorAndX)
-            {
-                switch (operatorAndX[0].ToString())
-                {
-                    case ("+"):
-                        operatorAndX[0] = "-";
-                        break;
-
-                    case ("-"):
-                        operatorAndX[0] = "+";
-                        break;
-
-                    case ("*"):
-                        operatorAndX[0] = "/";
-                        break;
-
-                    case ("/"):
-                        operatorAndX[0] = "*";
-                        break;
-                    default:
-                        break;
-                }
-
-                return operatorAndX;
-            }
-
             int resolveX(int leftSide, int rightSide)
             {
                 int result = 0;
-                char[] xArray = operatorX[1].ToString().ToCharArray();
+                char[] temp = operatorX[1].ToString().ToCharArray();
+                string[] xArray = new string[temp.Length];
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    xArray[i] = temp[i].ToString();
+                }
                 int xCoefficient = 1;
+                
 
                 if (operatorX.Count > 0 && leftOrRight == 1)
                 {
-                    result = leftSide - rightSide;
-                } else if (operatorX.Count > 0 && leftOrRight == 0)
+                    //rightSide = reverseNumber(rightSide);
+                    switch (opBeforeStatement)
+                    {
+                        case ("+"):
+                            result = leftSide - rightSide;
+                            break;
+                        case ("-"):
+                            result = leftSide + rightSide;
+                            break;
+                        case ("*"):
+                            result = leftSide / rightSide;
+                            break;
+                        case ("/"):
+                            result = rightSide * leftSide;
+                            break;
+                    }
+                }
+                else if (operatorX.Count > 0 && leftOrRight == 0)
                 {
-                    result = rightSide - leftSide ;
+                    //leftSide = reverseNumber(leftSide);
+                    switch (opBeforeStatement)
+                    {
+                        case ("+"):
+                            result = rightSide - leftSide;
+                            break;
+                        case ("-"):
+                            result = rightSide + leftSide;
+                            break;
+                        case ("*"):
+                            result = rightSide / leftSide;
+                            break;
+                        case ("/"):
+                            result = leftSide * rightSide;
+                            break;
+                    }
                 }
 
-                switch (xArray.Length)
+                if (xArray.Length > 1)
                 {
-                    case (2):
-                        xCoefficient = Convert.ToInt32(xArray[0]);
-                        result = result / xCoefficient;
-                        break;
-                    case (3):
-                        xCoefficient = (10* Convert.ToInt32(xArray[0])) + Convert.ToInt32(xArray[1]);
-                        result = result / xCoefficient;
-                        break;
-                    case (4):
-                        xCoefficient = (100 * Convert.ToInt32(xArray[0])) + (10 * Convert.ToInt32(xArray[1])) + Convert.ToInt32(xArray[0]);
-                        result = result / xCoefficient;
-                        break;
+                    xCoefficient = coefficientCreator(xArray);
+                    result = result / xCoefficient;
                 }
+                
 
                 return result;
+            }
+
+            int coefficientCreator(string[] array)
+            {
+                double coefficient = 0;
+                int power = 0;
+                for (int i = array.Length-2; i >= 0; i--)
+                {
+                    coefficient += Math.Pow(10.0, power)*Convert.ToInt32(array[i]);
+                    power++;
+                }
+                return (int)coefficient;
+            }
+
+            int reverseNumber(int number)
+            {
+                if (opBeforeStatement.Equals("-"))
+                {
+                    number = number * -1;
+                }
+                return number;
             }
 
         }
