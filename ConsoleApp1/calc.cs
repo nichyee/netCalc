@@ -87,15 +87,19 @@ namespace ConsoleApp1
                 if (rightHandResult != 0 && leftHandResult != 0)
                 {
                     result = resolveX(leftHandResult, rightHandResult);
-                } else if (parenthesisSide == 0)
+                }
+                else if (parenthesisSide == 0)
                 {
                     result = rightHandResult;
-                } else if (parenthesisSide == 1)
+                }
+                else if (parenthesisSide == 1)
                 {
                     result = leftHandResult;
                 }
-
-                
+                else
+                {
+                    result = resolveX(leftHandResult, rightHandResult);
+                }
 
                 if (parenthesis.Count > 0)
                 {
@@ -215,6 +219,7 @@ namespace ConsoleApp1
                             break;
                     }
                 }
+
                 return (operatorStack, outputArray);
             }
 
@@ -225,6 +230,7 @@ namespace ConsoleApp1
                 {
                     outputArray.Add(operatorStack.Pop().getOperation());
                 }
+
                 return (outputArray);
             }
 
@@ -273,6 +279,7 @@ namespace ConsoleApp1
                             break;
                     }
                 }
+
                 return finalStack;
             }
 
@@ -312,7 +319,7 @@ namespace ConsoleApp1
                         localArrayList.Add("0");
                         localArrayList.Reverse();
                     }
-                    
+
                 }
 
                 return (string[])localArrayList.ToArray(typeof(string));
@@ -409,7 +416,6 @@ namespace ConsoleApp1
                     result = result / xCoefficient;
                 }
 
-
                 return result;
             }
 
@@ -422,6 +428,7 @@ namespace ConsoleApp1
                     coefficient += Math.Pow(10.0, power) * Convert.ToInt32(array[i]);
                     power++;
                 }
+
                 return (int)coefficient;
             }
 
@@ -432,6 +439,7 @@ namespace ConsoleApp1
                 arrayList = shuntingYard(toSolve).Item2;
                 arrayList = combineStacks(priorities, arrayList);
                 final = evaluateStatement(arrayList);
+
                 return final.Pop();
             }
 
@@ -441,7 +449,7 @@ namespace ConsoleApp1
                 ArrayList tempRight = new ArrayList(secondStringArray);
                 var parenthesisCheckLeft = checkParenthesis(firstStringArray);
                 var parenthesisCheckRight = checkParenthesis(secondStringArray);
-                
+
 
                 if (parenthesisCheckLeft.Item4)
                 {
