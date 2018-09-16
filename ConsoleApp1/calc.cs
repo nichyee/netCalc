@@ -49,7 +49,6 @@ namespace ConsoleApp1
             ArrayList parenthesis = new ArrayList();
             int parenthesisSide = 3;
             int parenthesisIndex = 0;
-            int parenthesisAnswer = 0;
             string userInput = "";
 
             try
@@ -76,14 +75,27 @@ namespace ConsoleApp1
                 rightHandSide = parenthesisHandle.Item2;
 
                 leftHandResult = solveString(leftHandSide);
-                if (operatorX.Count > 2)
+                if (operatorX.Count > 0)
                 {
                     leftOrRight = 0;
                 }
 
                 rightHandResult = solveString(rightHandSide);
 
-                int result = resolveX(leftHandResult, rightHandResult);
+
+                int result = 0;
+                if (rightHandResult != 0 && leftHandResult != 0)
+                {
+                    result = resolveX(leftHandResult, rightHandResult);
+                } else if (parenthesisSide == 0)
+                {
+                    result = rightHandResult;
+                } else if (parenthesisSide == 1)
+                {
+                    result = leftHandResult;
+                }
+
+                
 
                 if (parenthesis.Count > 0)
                 {
@@ -306,12 +318,13 @@ namespace ConsoleApp1
                 return (string[])localArrayList.ToArray(typeof(string));
             }
 
-            (bool, int, int, bool) checkParenthesis(string[] statement)
+            (bool, int, int, bool, int) checkParenthesis(string[] statement)
             {
                 bool brackets = false;
                 bool hasX = false;
                 int leftBracketIndex = 0;
                 int rightBracketIndex = 0;
+                int xIndex = 0;
                 for (int i = 0; i < statement.Length; i++)
                 {
                     if (statement[i].ToString().Contains("("))
@@ -326,6 +339,7 @@ namespace ConsoleApp1
                     else if (statement[i].ToString().Contains("X"))
                     {
                         hasX = true;
+                        xIndex = i;
                     }
                 }
                 int index = leftBracketIndex + 1;
@@ -337,7 +351,7 @@ namespace ConsoleApp1
                     index++;
                 }
 
-                return (hasX, leftBracketIndex, (rightBracketIndex - leftBracketIndex) + 1, brackets);
+                return (hasX, leftBracketIndex, (rightBracketIndex - leftBracketIndex) + 1, brackets, xIndex);
             }
 
             int resolveX(int leftSide, int rightSide)
@@ -443,19 +457,16 @@ namespace ConsoleApp1
                 if (parenthesisCheckLeft.Item1 && parenthesisSide == 0)
                 {
                     string[] parenthesisArray = (string[])parenthesis.ToArray(typeof(string));
-                    parenthesisAnswer = solveString(parenthesisArray);
                     tempLeft = new ArrayList(firstStringArray);
-                    tempLeft.Insert(parenthesisIndex, parenthesisAnswer);
+                    tempLeft.Insert(parenthesisIndex, firstStringArray[parenthesisCheckLeft.Item5]);
                     tempLeft.RemoveRange(parenthesisIndex + 1, parenthesisCheckLeft.Item3);
                     firstStringArray = (string[])tempLeft.ToArray(typeof(string));
                 }
                 else if (parenthesisCheckRight.Item1 && parenthesisSide == 1)
                 {
                     string[] parenthesisArray = (string[])parenthesis.ToArray(typeof(string));
-                    parenthesisAnswer = solveString(parenthesisArray);
                     tempRight = new ArrayList(secondStringArray);
-                    tempRight.Insert(parenthesisIndex, "X");
-                    operatorX[1] = "X";
+                    tempRight.Insert(parenthesisIndex, secondStringArray[parenthesisCheckRight.Item5]);
                     tempRight.RemoveRange(parenthesisIndex + 1, parenthesisCheckRight.Item3);
                     secondStringArray = (string[])tempRight.ToArray(typeof(string));
                 }
